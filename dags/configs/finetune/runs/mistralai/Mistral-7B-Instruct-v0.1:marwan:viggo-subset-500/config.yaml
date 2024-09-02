@@ -1,0 +1,36 @@
+context_length: 512
+dataset_size_scaling_factor: 10000
+deepspeed:
+  config_path: configs/finetune/runs/mistralai/Mistral-7B-Instruct-v0.1:marwan:viggo-subset-500/deepspeed_config.json
+eval_batch_size_per_device: 8
+flash_attention_2: true
+learning_rate: 0.0001
+lora_config:
+  bias: none
+  fan_in_fan_out: false
+  init_lora_weights: true
+  lora_alpha: 16
+  lora_dropout: 0.05
+  modules_to_save: []
+  r: 8
+  target_modules:
+  - q_proj
+  - v_proj
+  - k_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+  - embed_tokens
+  - lm_head
+  task_type: CAUSAL_LM
+model_id: mistralai/Mistral-7B-Instruct-v0.1
+num_checkpoints_to_keep: 1
+num_devices: 4
+num_epochs: 8
+output_dir: /mnt/local_storage
+train_batch_size_per_device: 8
+train_path: s3://anyscale-public-materials/llm-finetuning/viggo_inverted/train/subset-500.jsonl
+valid_path: s3://anyscale-public-materials/llm-finetuning/viggo_inverted/valid/data.jsonl
+worker_resources:
+  accelerator_type:A10G: 0.001
