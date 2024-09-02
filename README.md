@@ -1,6 +1,8 @@
-# Anyscale and Airflow
+# astronomer-anyscale-dynamic-cluster-provisioning
 
-## astronomer-anyscale-dynamic-cluster-provisioning
+> [!TIP]
+> If you are new to Airflow, we recommend checking out our get started resources: [DAG writing for data engineers and data scientists](https://www.astronomer.io/events/webinars/dag-writing-for-data-engineers-and-data-scientists-video/) before diving into this project.
+
 A demo integration of Airflow with Anyscale using LLM finetuning as a usecase 
 
 - **Usecase:** Functional representation of unstructured text i.e. extracting structure from unstructured data. This can be extremely helpful in the context of customer support, where a user conversation needs to be correctly classified and specific metadata extracted from it. 
@@ -42,3 +44,14 @@ A demo integration of Airflow with Anyscale using LLM finetuning as a usecase
       - Complete rollout of challenger
     - If not:
       - send an alert (e.g. via slack) to AI team
+
+## Tools Used
+
+## How to set up the demo environment
+
+### Run the project locally
+
+
+### Run the project in the cloud
+
+## Running the DAGs
