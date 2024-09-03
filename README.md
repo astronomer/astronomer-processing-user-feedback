@@ -100,3 +100,5 @@ To integrate Airflow with Anyscale, you will need to provide several configurati
 ### Run the project in the cloud
 
 ## Running the DAGs
+
+![Screenshot of the Airflow UI showing the DAGs unpaused.](/static/unpaused.png)
