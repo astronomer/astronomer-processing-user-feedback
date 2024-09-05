@@ -1,4 +1,4 @@
-# Astronomer Anyscale Dynamic Cluster Provisioning
+# Anyscale + Astronomer for processing user feedback - Reference architecture
 
 Welcome! 
 This project is an end-to-end pipeline showing how to process user feedback in production with [Anyscale](https://anyscale.com/) and [Astronomer](https://www.astronomer.io/) 
@@ -120,12 +120,16 @@ The demo is setup with a schema called `DEMOUSER`, a database called `SANDBOX` a
 
 ### Run the project locally
 
-1. In the root of the repository, run `astro dev start` to start up the following Docker containers. This is your local development environment.
+1. Create a new file called .env in the root of the cloned repository and copy the contents of .env_example into it. Fill out the placeholders with your own values for `BUCKET`, `ORG_ID`, `CLOUD_ID`, `HF_TOKEN` & `ANYSCALE_CLI_TOKEN`
+
+2. In the root of the repository, run `astro dev start` to start up the following Docker containers. This is your local development environment.
 
     - **Postgres**: Airflow's Metadata Database.
     - **Webserver**: The Airflow component responsible for rendering the Airflow UI. Accessible on port `localhost:8080`.
     - **Scheduler**: The Airflow component responsible for monitoring and triggering tasks
     - **Triggerer**: The Airflow component responsible for triggering deferred tasks
+
+    Note that after any changes to .env you will need to run astro dev start for new environment variables to be picked up.
 
 3. Access the Airflow UI at `localhost:8080` and follow the DAG running instructions in the [Running the DAGs](#running-the-dags) section of this README. You can run and develop DAGs in this environment.
 
@@ -133,17 +137,53 @@ The demo is setup with a schema called `DEMOUSER`, a database called `SANDBOX` a
 
 1. Sign up to [Astro](http://qrco.de/bfHv2Q) for free and follow the onboarding flow to create a deployment with default configurations.
 3. Deploy the project to Astro using `astro deploy`. See [Deploy code to Astro](https://www.astronomer.io/docs/astro/deploy-code).
-3. Set up your Anyscale, AWS and Snowflake connections on Astro. For instructions see [Manage Airflow connections and variables](https://www.astronomer.io/docs/astro/manage-connections-variables).
+3. Set up your Anyscale, AWS and Snowflake connections, as well as all other environment variables listed in [`.env_example](.env_example) on Astro. For instructions see [Manage Airflow connections and variables](https://www.astronomer.io/docs/astro/manage-connections-variables) and [Manage environment variables on Astro](https://www.astronomer.io/docs/astro/manage-env-vars).
+
 
 4. Open the Airflow UI of your Astro deployment and follow the steps in [Running the DAGs](#running-the-dags).
 
 
 ## Running the DAGs
 
-There are 3 DAGS in this repo -
+This repo contains three DAGs:
 
-- Access_and_transform_data
-- Finetune_LLM_and_Deploy_Challenger
-- llm_retrain_and_rollout 
+1. Access_and_transform_data
+2. Finetune_llm_and_deploy_challenger
+3. llm_retrain_and_rollout
+
+Unpause all DAGs by toggling the switch to the left of each DAG name.
 
 ![Screenshot of the Airflow UI showing the DAGs unpaused.](/static/unpaused.png)
+
+### 1. Access_and_transform_data
+
+This DAG demonstrates data processing from multiple sources, transformation using dynamic task mapping, joining, and uploading to S3.
+
+> [!IMPORTANT]
+> **Demo simplifications:**
+> - All data is read from S3, despite task names suggesting other sources
+> - `transform_data` task passes data through unchanged (customize as needed)
+> - `upload_to_s3` saves to the same S3 folder used for reading
+
+The DAG concludes by uploading a Dataset called `data_transformed`, which triggers the next DAG.
+
+![Screenshot of the data update DAG](/static/DAG-1.png)
+
+### 2. Finetune_llm_and_deploy_challenger
+
+Triggered by the `data_transformed` Dataset update, this DAG reads data from S3 and checks for ≥500 records. If met, it initiates fine-tuning using Anyscale's LLM-Forge tool, which automates the process based on a YAML config.
+
+> [!IMPORTANT]
+> **Demo simplification:**
+> - Data is read from the same S3 folder as the previous DAG
+
+![Screenshot of the model update DAG](/static/DAG-2.png)
+
+### 3. llm_retrain_and_rollout
+
+This manually triggered DAG performs complex champion-challenger analysis.
+
+> [!TIP]
+> This job runs for over 2 hours. Adjust operator timeout settings to ensure completion.
+
+![Screenshot of the model update DAG](/static/DAG-3.png)

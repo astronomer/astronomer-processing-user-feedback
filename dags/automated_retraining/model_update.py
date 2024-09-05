@@ -114,7 +114,7 @@ def build_evaluate_command(
 
 # define the DAG
 dag = DAG(
-    "Finetune_LLM_and_Deploy_Challenger",
+    "Finetune_llm_and_deploy_challenger",
     default_args={"owner": "airflow"},
     description="Finetune and evaluate a LLM model",
     schedule=[Dataset("data_transformed")],
@@ -123,9 +123,9 @@ dag = DAG(
     params={
         "llm_base_model": "mistralai/Mistral-7B-Instruct-v0.1",
         "model_id": "viggo-subset-200",
-        "train_path": "s3://anyscale-public-materials/llm-finetuning/viggo_inverted/train/subset-200.jsonl",
-        "valid_path": "s3://anyscale-public-materials/llm-finetuning/viggo_inverted/valid/data.jsonl",
-        "test_path": "s3://anyscale-public-materials/llm-finetuning/viggo_inverted/test/data.jsonl",
+        "train_path": "s3://anyscale-public-materials/llm-finetuning/viggo_inverted/train/subset-200.jsonl", # s3://astronomer-anyscale-demo-2/viggo-data/transformed/joined_data.jsonl
+        "valid_path": "s3://anyscale-public-materials/llm-finetuning/viggo_inverted/valid/data.jsonl", # s3://astronomer-anyscale-demo-2/viggo-data/valid/data.jsonl
+        "test_path": "s3://anyscale-public-materials/llm-finetuning/viggo_inverted/test/data.jsonl", # s3://astronomer-anyscale-demo-2/viggo-data/test/data.jsonl
         "context_length": 512,
         "num_devices": 4,
         "num_epochs": 12,
