@@ -162,8 +162,8 @@ This DAG demonstrates data processing from multiple sources, transformation usin
 > [!IMPORTANT]
 > **Demo simplifications:**
 > - All data is read from S3, despite task names suggesting other sources
-> - `transform_data` task passes data through unchanged (customize as needed)
-> - `upload_to_s3` saves to the same S3 folder used for reading
+> - transform_data task passes data through unchanged (customize as needed)
+> - upload_to_s3 task saves to the same S3 folder used for reading
 
 The DAG concludes by uploading a Dataset called `data_transformed`, which triggers the next DAG.
 
