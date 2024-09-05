@@ -1,7 +1,7 @@
 # Astronomer Anyscale Dynamic Cluster Provisioning
 
 Welcome! 
-This project is an end-to-end pipeline showing how to processing user feedback in production with [Anyscale](https://anyscale.com/) and [Astronomer](https://www.astronomer.io/) 
+This project is an end-to-end pipeline showing how to process user feedback in production with [Anyscale](https://anyscale.com/) and [Astronomer](https://www.astronomer.io/) 
 for an eCommerce use case. You can use this project as a starting point to build your own pipelines for similar use cases.
 
 > [!TIP]
@@ -53,8 +53,8 @@ A demo integration of Airflow with Anyscale using LLM finetuning as a usecase
 ## Tools Used
 
 - [Apache Airflow®](https://airflow.apache.org/docs/apache-airflow/stable/index.html) running on [Astro](https://www.astronomer.io/product/). A [free trial](http://qrco.de/bfHv2Q) is available.
-- [Anyscale](https://www.anyscale.com/) to run LLM jobs
-- [Amazon S3](https://aws.amazon.com/s3/) free tier. You can also adapt the pipeline to run with your preferred object storage solution.
+- [Anyscale](https://www.anyscale.com/) to run the fine-tuning jobs and to deploy the LLM as a service
+- [Amazon S3](https://aws.amazon.com/s3/) free tier. You can also adapt the pipeline to run with your preferred object storage solution. Or re-use the cloud bucket that you configured on the Anyscale platform
 
 Optional:
 
@@ -65,14 +65,17 @@ Optional:
 Follow the steps below to set up the demo for yourself.
 
 1. Install Astronomer's open-source local Airflow development tool, the [Astro CLI](https://www.astronomer.io/docs/astro/cli/overview).
-2. Log into your AWS account and create [a new empty S3 bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html). Make sure you have a set of [AWS credentials](https://docs.aws.amazon.com/iam/) with `AmazonS3FullAccess` for this new bucket.
-3. (Optional): Sign up for a [free trial](https://signup.snowflake.com/) of Snowflake. Create a database called `ASTRONOMER_ANYSCALE_DEMO` with a schema called `dev`.
+2. Log into your Anyscale account and complete the following steps -
+  - Setup up a Cloud provider (AWS/GCP) that the Anyscale Platform can use to run your jobs
+  - Configure your Anyscale connection using the [section](#configuration-details-for-anyscale-connection) section below. We will need these details while setting up our Airflow job
+3. Configure your AWS connection as shown in the [section](#configuration-details-for-aws-connection) below
+4. (Optional): Sign up for a [free trial](https://signup.snowflake.com/) of Snowflake. See the [section](#configuration-details-for-snowflake-connection) below for more information on setting up your snowflake connection
 
-    A Snowflake account is needed to run the following DAGs, which add additional product information about sneakers and run the bonus batch inference pipeline.
+    A Snowflake account is needed to run the following DAGs, which track the number of records we read from each input.
     
-    - [`data_update`](dags/automated_retraining/model_update.py)
+    - [`data_update`](dags/automated_retraining/data_update.py)
 
-    If you don't have a Snowflake account, delete these DAGs by deleting their file in the `dags` folder.
+    If you don't have a Snowflake account, delete the `write_metrics_to_snowflake` task from the dag.
 
 4. Fork this repository and clone the code locally.
 
@@ -91,14 +94,56 @@ To integrate Airflow with Anyscale, you will need to provide several configurati
 
 ### Configuration Details for AWS Connection
 
+To integrate Airflow with AWS, we will need to setup an AWS connection. To do so, we need to collect the following information for your AWS user
+
+- `AWS_ACCESS_KEY`
+- `AWS_SECRET_ACCESS_KEY`
+
+Alternatively, see the [Authentication and access credentials](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-authentication.html) page for other ways of authenticating with AWS
+
+
 ### Configuration Details for Snowflake Connection
+
+To integrate Airflow with Snowflake, we will need to setup a Snowflake Connection. To do so, we will need the following details
+
+- Schema
+- Login & Password
+- Account
+- Data warehouse
+- Database
+- Region
+
+We will also provide the table name within the task.
+
+The demo is setup with a schema called `DEMOUSER`, a database called `SANDBOX` and table called `ASTRONOMER_ANYSCALE_DEMO`. You may also use your own tables in which case, don't forget to update the task code
 
 
 ### Run the project locally
 
+1. In the root of the repository, run `astro dev start` to start up the following Docker containers. This is your local development environment.
+
+    - **Postgres**: Airflow's Metadata Database.
+    - **Webserver**: The Airflow component responsible for rendering the Airflow UI. Accessible on port `localhost:8080`.
+    - **Scheduler**: The Airflow component responsible for monitoring and triggering tasks
+    - **Triggerer**: The Airflow component responsible for triggering deferred tasks
+
+3. Access the Airflow UI at `localhost:8080` and follow the DAG running instructions in the [Running the DAGs](#running-the-dags) section of this README. You can run and develop DAGs in this environment.
 
 ### Run the project in the cloud
 
+1. Sign up to [Astro](http://qrco.de/bfHv2Q) for free and follow the onboarding flow to create a deployment with default configurations.
+3. Deploy the project to Astro using `astro deploy`. See [Deploy code to Astro](https://www.astronomer.io/docs/astro/deploy-code).
+3. Set up your Anyscale, AWS and Snowflake connections on Astro. For instructions see [Manage Airflow connections and variables](https://www.astronomer.io/docs/astro/manage-connections-variables).
+
+4. Open the Airflow UI of your Astro deployment and follow the steps in [Running the DAGs](#running-the-dags).
+
+
 ## Running the DAGs
+
+There are 3 DAGS in this repo -
+
+- Access_and_transform_data
+- Finetune_LLM_and_Deploy_Challenger
+- llm_retrain_and_rollout 
 
 ![Screenshot of the Airflow UI showing the DAGs unpaused.](/static/unpaused.png)
