@@ -185,7 +185,7 @@ Triggered by the `data_transformed` Dataset update, this DAG reads data from S3 
 
 ### 3. llm_retrain_and_rollout
 
-This manually triggered DAG performs complex champion-challenger analysis. Its an advanced example of how to use Anyscale's LLM-Forge tool to fine-tune a model and deploy it.
+This manually triggered DAG performs complex champion-challenger analysis. Its an advanced example of how to use the operators in the Anyscale provider and Anyscale's LLM-Forge tool to fine-tune a model and deploy it
 
 > [!TIP]
 > This job runs for over 2 hours. Adjust operator timeout settings to ensure completion.
