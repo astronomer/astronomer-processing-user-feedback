@@ -34,8 +34,8 @@ def count_records_in_s3_file(bucket: str, key: str, **kwargs) -> int:
 
 def check_record_count(**kwargs):
     ti = kwargs['ti']
-    record_count = ti.xcom_pull(key='record_count', task_ids='count_records')
-    if record_count >= 500:
+    record_count = ti.xcom_pull(key='record_count', task_ids='record_count')
+    if record_count >= 200:
         return 'get_lora_storage_path'
     else:
         return 'end_dag'
@@ -76,41 +76,6 @@ def get_service_url_and_token(service_name: str) -> tuple[str, str]:
     anyscale = AnyscaleHook(conn_id="anyscale_conn").client
     status = anyscale.service.status(name=service_name)
     return status.query_url, status.query_auth_token
-
-
-def build_evaluate_command(
-    evaluation_data_path: str,
-    query_url: str,
-    query_auth_token: str,
-    random_seed: int,
-    sample_size: Optional[int],
-    base_model_id: str,
-    model_id: str,
-    num_few_shot_examples: int,
-    concurrency: int,
-    temperature: float,
-) -> str:
-    cmd = [
-        "python",
-        "evaluate.py",
-        evaluation_data_path,
-        query_url,
-        query_auth_token,
-        "--random-seed",
-        str(random_seed),
-        "--llm-model",
-        f"{base_model_id}:{model_id}",
-        "--num-few-shot-examples",
-        str(num_few_shot_examples),
-        "--concurrency",
-        str(concurrency),
-        "--temperature",
-        str(temperature),
-    ]
-    if sample_size:
-        cmd.extend(["--sample-size", str(sample_size)])
-    return " ".join(cmd)
-
 
 # define the DAG
 dag = DAG(

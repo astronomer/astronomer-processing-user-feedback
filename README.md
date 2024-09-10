@@ -31,7 +31,7 @@ A demo integration of Airflow with Anyscale using LLM finetuning as a usecase
   - Run evaluation and compare to baseline
 - **Automated retraining** - See `dags/automated_retraining/` for the automated retraining DAGs
   - DAG 1: regular data update - See `dags/automated_retraining/data_update.py`
-    - Connect to two/three common datasources (Zendesk, slack, ...)
+    - Connect to two/three common datasources (Twitch, Discord, ...)
     - Join data
     - Count data
     - If data is large enough:
@@ -84,13 +84,20 @@ Follow the steps below to set up the demo for yourself.
 
 To integrate Airflow with Anyscale, you will need to provide several configuration details:
 
-- **Anyscale API Token**: Obtain your API token either by using the anyscale cli or through the [Anyscale console](https://console.anyscale.com/v2/api-keys?api-keys-tab=platform).
+- **Anyscale API Token**: Obtain your API token either by using the anyscale cli or through the [Anyscale console](https://console.anyscale.com/v2/api-keys?api-keys-tab=platform). This information will be used while setting the Airflow connection.
+
+- **Org ID**: Obtain the Org ID from your Anyscale Web UI. This will be used to identify which anyscale organization to use while running your jobs or deploying your services. This information will be use in an environment variable below.
+
+- **Cloud ID**: Obtain the unique identifier for your cloud configuration on Anyscale. This identifier is available on the UI and will be used in an environment variable below.
+
+The following two configurations are provided to the operators in the DAG - 
 
 - **Compute Config (optional)**: If you want to constrain autoscaling, you can specify the compute cluster that will execute your Ray script by either:
   - Dynamically providing this via the `compute_config` input parameter, or
   - Creating a compute configuration in Anyscale and using the resulting ID in the `compute_config_id` parameter.
 
 - **Image URI**: Specify the docker image you would like your operator to use. Make sure your image is accessible within your Anyscale account. Note, you can alternatively specify a containerfile that can be used to dynamically build the image
+
 
 ### Configuration Details for AWS Connection
 
@@ -120,9 +127,16 @@ The demo is setup with a schema called `DEMOUSER`, a database called `SANDBOX` a
 
 ### Run the project locally
 
-1. Create a new file called .env in the root of the cloned repository and copy the contents of .env_example into it. Fill out the placeholders with your own values for `BUCKET`, `ORG_ID`, `CLOUD_ID`, `HF_TOKEN` & `ANYSCALE_CLI_TOKEN`
+1. Create a new file called .env in the root of the cloned repository and copy the contents of .env_example into it. Fill out the placeholders with your own values 
+    
+    - `BUCKET`: The S3 bucket that should be used by Anyscale
+    - `ORG_ID`: The Organization to use while running your jobs or deploying your services
+    - `CLOUD_ID`: The Identifier for the cloud configuration specified in your Anyscale UI
+    - `HF_TOKEN`: The base model is downloaded from Hugging Face and we will therefore all need a HF access token
 
-2. In the root of the repository, run `astro dev start` to start up the following Docker containers. This is your local development environment.
+2. To run the `data_update` DAG, upload the files in the `data/` folder to your AWS S3 bucket and update the keys in `read_discord_data` and `read_twitch_data` tasks
+
+3. In the root of the repository, run `astro dev start` to start up the following Docker containers. This is your local development environment.
 
     - **Postgres**: Airflow's Metadata Database.
     - **Webserver**: The Airflow component responsible for rendering the Airflow UI. Accessible on port `localhost:8080`.
@@ -131,7 +145,7 @@ The demo is setup with a schema called `DEMOUSER`, a database called `SANDBOX` a
 
     Note that after any changes to .env you will need to run astro dev start for new environment variables to be picked up.
 
-3. Access the Airflow UI at `localhost:8080` and follow the DAG running instructions in the [Running the DAGs](#running-the-dags) section of this README. You can run and develop DAGs in this environment.
+4. Access the Airflow UI at `localhost:8080` and follow the DAG running instructions in the [Running the DAGs](#running-the-dags) section of this README. You can run and develop DAGs in this environment.
 
 ### Run the project in the cloud
 
@@ -161,7 +175,7 @@ This DAG demonstrates data processing from multiple sources, transformation usin
 
 > [!IMPORTANT]
 > **Demo simplifications:**
-> - All data is read from S3, despite task names suggesting other sources
+> - All data is read from S3, despite task names suggesting other sources. Please upload data from the data folder to your s3 bucket
 > - transform_data task passes data through unchanged (customize as needed)
 > - upload_to_s3 task saves to the same S3 folder used for reading
 
@@ -171,7 +185,7 @@ The DAG concludes by uploading a Dataset called `data_transformed`, which trigge
 
 ### 2. Finetune_llm_and_deploy_challenger
 
-Triggered by the `data_transformed` Dataset update, this DAG reads data from S3 and checks for ≥500 records. If met, it initiates fine-tuning using Anyscale's LLM-Forge tool, which automates the process based on a YAML config.
+Triggered by the `data_transformed` Dataset update, this DAG reads data from S3 and checks for ≥200 records. If met, it initiates fine-tuning using Anyscale's LLM-Forge tool, which automates the process based on a YAML config.
 
 > [!IMPORTANT]
 > **Demo simplification:**
